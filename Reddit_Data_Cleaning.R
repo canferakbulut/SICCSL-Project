@@ -3,12 +3,13 @@ packages <- c("jsonlite", "LSAfun", "dplyr", "vader", "data.table", "rlist", "ng
 lapply(packages, require, character.only = TRUE)
 
 ## read csv
-pat <- #"<PATH>"
+pat <- "small_reddit_convo.csv"
 df <- read.csv(pat)
 dt <- data.table(df)
 
 ## find parent location
 setkey(dt, id)
+
 parent_index_search <- function(parent_id, dt) {
   return(dt[parent_id, which = TRUE])
 }
@@ -44,8 +45,11 @@ add_parent_cols <- function(parent_index, dt) {
       }
     }
   return(as.data.frame(list.cbind(parent)))
-  }
+}
 
-## cleaning
+dt <- cbind(dt, add_parent_cols(parent_index_w_na, dt))
+
+## rm orphan comments
 dt <- dt[!is.na(parent_index_w_na), ]
+dt <- dt %>% filter(!grepl("\\[deleted\\]", dyad_pairs))
 
